@@ -30,7 +30,7 @@ EXEOBJS = $(EXENAME).o
 EXELIBS = -lHIPGridder
 
 LIBNAME=libHIPGridder.so
-LIBOBJS=HIPGridder.o HIPGridKernel.o Stopwatch.o common.o
+LIBOBJS=HIPGridder.o HIPGridKernel.o common.o
 
 NVCCFLAGS= --compiler-options -fPIC
 
@@ -39,7 +39,7 @@ all:		$(EXENAME) $(LIBNAME)
 %.o:		%.cc %.h
 		$(CXX) $(CFLAGS) -I$(CUDA) -c $<
 
-$(LIBNAME):	HIPGridder.cc HIPGridder.h HIPGridKernel.cu Stopwatch.o common.o
+$(LIBNAME):	HIPGridder.cc HIPGridder.h HIPGridKernel.cu common.o
 		hipcc $(NVCCFLAGS) -I$(CUDA) -c HIPGridKernel.cu
 		hipcc $(NVCCFLAGS) -I$(CUDA) -c HIPGridder.cc
 		hipcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)

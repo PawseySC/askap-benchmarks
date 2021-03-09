@@ -25,7 +25,6 @@
 
 // Local includes
 #include "../tConvolveCommon/common.h"
-#include "Stopwatch.h"
 
 // system includes
 #include <cassert>

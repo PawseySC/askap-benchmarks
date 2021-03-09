@@ -28,12 +28,10 @@ all:		tConvolveOMP
 
 common.o:	../tConvolveCommon/common.cc ../tConvolveCommon/common.h 
 		$(CXX) $(CFLAGS) -c ../tConvolveCommon/common.cc
-Stopwatch.o:	Stopwatch.cc Stopwatch.h 
-		$(CXX) $(CFLAGS) -c Stopwatch.cc
 
-tConvolveOMP:	tConvolveOMP.cc Stopwatch.o common.o
+tConvolveOMP:	tConvolveOMP.cc common.o
 		$(CXX) $(CFLAGS) -c tConvolveOMP.cc
-		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o Stopwatch.o common.o
+		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o common.o
 
 clean:
 		rm -f *.o tConvolveOMP

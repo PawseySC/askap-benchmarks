@@ -51,20 +51,17 @@ all:		tConvolveACC tConvolveDegrid tConvolveCmplxMult
 common.o:	../tConvolveCommon/common.cc ../tConvolveCommon/common.h 
 		$(CXX) $(CFLAGS) -c ../tConvolveCommon/common.cc
 
-Stopwatch.o:	Stopwatch.cc Stopwatch.h
-		$(CXX) $(CFLAGS) -c Stopwatch.cc
-
-tConvolveACC:	tConvolveACC.cc Stopwatch.o common.o
+tConvolveACC:	tConvolveACC.cc common.o
 		$(CXX) $(CFLAGS) -c tConvolveACC.cc
-		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveACC tConvolveACC.o Stopwatch.o common.o
+		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveACC tConvolveACC.o common.o
 
-tConvolveCmplxMult:	tConvolveCmplxMult.cc Stopwatch.o common.o
+tConvolveCmplxMult:	tConvolveCmplxMult.cc common.o
 		$(CXX) $(CFLAGS) -c tConvolveCmplxMult.cc
-		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveCmplxMult tConvolveCmplxMult.o Stopwatch.o common.o
+		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveCmplxMult tConvolveCmplxMult.o common.o
 
-tConvolveDegrid:	tConvolveDegrid.cc Stopwatch.o common.o
+tConvolveDegrid:	tConvolveDegrid.cc common.o
 		$(CXX) $(CFLAGS) -c tConvolveDegrid.cc
-		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveDegrid tConvolveDegrid.o Stopwatch.o common.o
+		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveDegrid tConvolveDegrid.o common.o
 
 clean:
 		rm -f *.o tConvolveACC tConvolveDegrid

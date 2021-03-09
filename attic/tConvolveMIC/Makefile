@@ -25,7 +25,7 @@ CXX=icpc
 CFLAGS=-O3 -offload-build -openmp -mmic -mkl -DUSEBLAS
 
 EXENAME=tConvolveMIC
-OBJS = $(EXENAME).o Stopwatch.o
+OBJS = $(EXENAME).o common.o
 
 all:        $(EXENAME)
 

@@ -30,8 +30,8 @@ EXENAME = tConvolveCuda
 EXEOBJS = $(EXENAME).o
 EXELIBS = -lCudaGridder
 
-LIBNAME=libCudaGridder.so
-LIBOBJS=CudaGridder.o CudaGridKernel.o Stopwatch.o
+LIBNAME=libHIPCPUGridder.so
+LIBOBJS=HIPCPUGridder.o HIPCPUGridKernel.o common.o
 
 NVCCFLAGS= -fPIC -std=c++2a
 #-std=c++20
@@ -41,9 +41,9 @@ all:		$(EXENAME) $(LIBNAME)
 %.o:		%.cc %.h
 		$(CXX) $(CFLAGS) -I$(HIPCPU) -c $<
 
-$(LIBNAME):	CudaGridder.cc CudaGridder.h CudaGridKernel.cu Stopwatch.o
-		gcc $(NVCCFLAGS) -I$(HIPCPU) -c CudaGridKernel.cc
-		gcc $(NVCCFLAGS) -I$(HIPCPU) -c CudaGridder.cc
+$(LIBNAME):	HIPCPUGridder.cc HIPCPUGridder.h HIPCPUGridKernel.cu common.o
+		gcc $(NVCCFLAGS) -I$(HIPCPU) -c HIPCPUGridKernel.cc
+		gcc $(NVCCFLAGS) -I$(HIPCPU) -c HIPCPUGridder.cc
 		gcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
 
 $(EXENAME):	$(EXEOBJS) $(LIBNAME)
