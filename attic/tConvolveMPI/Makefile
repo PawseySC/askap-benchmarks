@@ -25,7 +25,7 @@ CFLAGS=-O3 -fstrict-aliasing -fcx-limited-range -Wall -Wextra
 LIBS=
 
 EXENAME = tConvolveMPI
-OBJS = tConvolveMPI.o Stopwatch.o Benchmark.o
+OBJS = tConvolveMPI.o common.o Benchmark.o
 
 all:		$(EXENAME)
 

@@ -29,6 +29,7 @@
 // System includes
 #include <vector>
 #include <complex>
+#include "common.h"
 
 struct Sample {
     Value data;
@@ -42,9 +43,9 @@ class Benchmark {
         Benchmark();
 
         int randomInt();
-        void init();
-        void runGrid();
-        void runDegrid();
+        void init(Options &);
+        void runGrid(Options &);
+        void runDegrid(Options &);
 
         void gridKernel(const int support,
                         const std::vector<Value>& C,

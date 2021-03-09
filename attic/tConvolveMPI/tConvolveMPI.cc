@@ -40,7 +40,6 @@
 // Include own header file first
 #include "tConvolveMPI.h"
 #include "Benchmark.h"
-#include "Stopwatch.h"
 #include "common.h"
 
 // System & MPI includes
@@ -73,7 +72,7 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    Options opt
+    Options opt;
     getinput(argc, argv, opt);
     // Change these if necessary to adjust run time
     int nSamples = opt.nSamples;
