@@ -33,6 +33,9 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <sys/times.h>
+#include <unistd.h>
+#include <stdexcept>
 
 #ifdef _USEMPI 
 #include <mpi.h>
@@ -63,6 +66,19 @@ struct Options {
     unsigned int baseline = 2000; // Maximum baseline in meters
 
 };
+
+class Stopwatch {
+    public:
+        Stopwatch();
+        ~Stopwatch();
+
+        void start();
+        double stop();
+
+    private:
+        clock_t m_start;
+};
+
 
 void configerror(std::string &);
 void getinput(int argc, char **argv, struct Options &opt);
