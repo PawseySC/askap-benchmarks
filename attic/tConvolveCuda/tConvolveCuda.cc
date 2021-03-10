@@ -251,10 +251,8 @@ int main(int argc, char* argv[])
     cout << "+++++ "<<process<<" "<<calctypecomp<<" +++++" << endl;
     compgrid.assign(compgrid.size(), Value(1.0));
     time = 0.0;
-    degridKernelCuda(compgrid, gSize, support, C, cOffset, iu, iv, gpuoutdata, time);
-    time = sw.stop();
+    degridKernelCuda(compgrid, gSize, support, C, cOffset, iu, iv, compoutdata, time);
     timingscomp.push_back(time);
-    cout<<" Running with "<< nthreads <<" threads "<<endl;
     report_timings(time, opt, sSize, griddings);
     verify_result(process+" : "+calctyperef+"<->"+calctypecomp, cpuoutdata, compoutdata);
 
