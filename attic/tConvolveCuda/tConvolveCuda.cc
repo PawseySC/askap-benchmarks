@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////////////
     process = "Forward processing";
     calctyperef = "CPU";
-    calctypecomp = "OpenMP";
+    calctypecomp = "GPU CUDA";
     timingsref.clear();
     timingscomp.clear();
     std::vector<Value> cpugrid(gSize*gSize);
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////////////
     process = "Reverse processing";
     calctyperef = "CPU";
-    calctypecomp = "OpenMP";
+    calctypecomp = "GPU CUDA";
     timingsref.clear();
     timingscomp.clear();
 
@@ -251,10 +251,8 @@ int main(int argc, char* argv[])
     cout << "+++++ "<<process<<" "<<calctypecomp<<" +++++" << endl;
     compgrid.assign(compgrid.size(), Value(1.0));
     time = 0.0;
-    degridKernelCuda(compgrid, gSize, support, C, cOffset, iu, iv, gpuoutdata, time);
-    time = sw.stop();
+    degridKernelCuda(compgrid, gSize, support, C, cOffset, iu, iv, compoutdata, time);
     timingscomp.push_back(time);
-    cout<<" Running with "<< nthreads <<" threads "<<endl;
     report_timings(time, opt, sSize, griddings);
     verify_result(process+" : "+calctyperef+"<->"+calctypecomp, cpuoutdata, compoutdata);
 
@@ -277,12 +275,11 @@ int main(int argc, char* argv[])
         for (auto i=1; i<opt.nIterations;i++) {
             compgriditer.assign(compgriditer.size(), Value(1.0));
             time = 0.0;
-            gridKernelCuda(data, support, C, cOffset, iu, iv, compgriditer, gSize, time);
+            degridKernelCuda(compgriditer, gSize, support, C, cOffset, iu, iv, compoutdata, time);
             timingscomp.push_back(time);
         }
         report_timings(timingscomp, opt, sSize, griddings);
     }
-
 
     return 0;
 }
