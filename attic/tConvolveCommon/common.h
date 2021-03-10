@@ -83,6 +83,7 @@ class Stopwatch {
 void configerror(std::string &);
 void getinput(int argc, char **argv, struct Options &opt);
 void report_timings(const double time, Options &opt, const int sSize, const double griddings);
+void report_timings(const std::vector<double> &timings, Options &opt, const int sSize, const double griddings);
 
 int verify_result(std::string compname, 
     std::vector<Value> ref, std::vector<Value> comp, 

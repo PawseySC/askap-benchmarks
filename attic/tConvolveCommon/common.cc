@@ -111,11 +111,26 @@ void getinput(int argc, char **argv, struct Options &opt)
 void report_timings(const double time, Options &opt, const int sSize, const double griddings)
 {
     double spectralsamplesize = opt.nSamples*opt.nChan;
-    cout << "    Number of iterations "<<opt.nIterations<<endl;
     cout << "    Time " << time << " (s) " << endl;
     cout << "    Time per visibility spectral sample " << 1e6*time / spectralsamplesize << " (us) " << endl;
     cout << "    Time per gridding   " << 1e9*time / (spectralsamplesize * static_cast<double>((sSize)*(sSize))) << " (ns) " << endl;
     cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << endl;
+}
+
+// Report on timings
+void report_timings(const std::vector<double> &timings, Options &opt, const int sSize, const double griddings)
+{
+    double spectralsamplesize = opt.nSamples*opt.nChan;
+    cout << "    Number of iterations "<<opt.nIterations<<endl;
+    double avetime = 0, stdtime = 0;
+    for (auto t:timings) {avetime += t; stdtime += t*t;}
+    avetime /= static_cast<double>(opt.nIterations);
+    stdtime = sqrt(stdtime - avetime*avetime)/(static_cast<double>(opt.nIterations)-1.0);
+
+    cout << "    Ave Time " << avetime << " +/= "<< stdtime<<" (s) " << endl;
+    cout << "    Ave Time per visibility spectral sample " << 1e6*avetime / spectralsamplesize << " (us) " << endl;
+    cout << "    Ave Time per gridding   " << 1e9*avetime / (spectralsamplesize * static_cast<double>((sSize)*(sSize))) << " (ns) " << endl;
+    cout << "    Ave Gridding rate   " << (griddings / 1000000) / avetime << " (million grid points per second)" << endl;
 }
 
 int verify_result(std::string compname, 
