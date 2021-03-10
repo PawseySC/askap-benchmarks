@@ -26,9 +26,9 @@
 #ifndef HIP_GRID_KERNEL_H
 #define HIP_GRID_KERNEL_H
 
-#include <cuComplex.h>
+#include <hip/hip_complex.h>
 
-typedef cuComplex Complex;
+typedef hipComplex Complex;
 
 __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int support,
 		const Complex *C, const int *cOffset,
