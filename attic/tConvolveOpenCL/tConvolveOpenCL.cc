@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 	std::vector<Coord> w(nSamples);
 	std::vector<Value> data(nSamples*nChan);
 	std::vector<Value> cpuoutdata(nSamples*nChan);
-	std::vector<Value> gpuoutdata(nSamples*nChan);
+	std::vector<Value> compoutdata(nSamples*nChan);
 
     const unsigned int maxint = std::numeric_limits<int>::max();
 
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 		{
 			data[i*nChan+chan]=1.0;
 			cpuoutdata[i*nChan+chan]=0.0;
-			gpuoutdata[i*nChan+chan]=0.0;
+			compoutdata[i*nChan+chan]=0.0;
 		}
 	}
 
@@ -187,69 +187,118 @@ int main(int argc, char* argv[])
 	int sSize=2*support+1;
 	double griddings = (double(nSamples*nChan)* double((sSize)*(sSize)));
 
-	///////////////////////////////////////////////////////////////////////////
-	// DO GRIDDING
-	///////////////////////////////////////////////////////////////////////////
-	std::vector<Value> cpugrid(gSize*gSize);
-	cpugrid.assign(cpugrid.size(), Value(0.0));
-	{
-		// Now we can do the timing for the CPU implementation
-		cout << "+++++ Forward processing (CPU) +++++" << endl;
+    std::string process, calctyperef, calctypecomp;
+    std::vector<double> timingsref, timingscomp;
+    Stopwatch sw;
+    double time;
 
-		Stopwatch sw;
-		sw.start();
-		gridKernel(data, support, C, cOffset, iu, iv, cpugrid, gSize);
-		double time = sw.stop();
-		report_timings(time, opt, sSize, griddings);
+    ///////////////////////////////////////////////////////////////////////////
+    // DO GRIDDING
+    ///////////////////////////////////////////////////////////////////////////
+    process = "Forward processing";
+    calctyperef = "CPU";
+    calctypecomp = "GPU OpenCL";
+    timingsref.clear();
+    timingscomp.clear();
+    std::vector<Value> cpugrid(gSize*gSize);
+    std::vector<Value> compgrid(gSize*gSize);
+    
+    cout << "First iteration "<<endl;
+    // Run reference CPU calculation 
+    cout << "+++++ "<<process<<" "<<calctyperef<<" +++++" << endl;
+    cpugrid.assign(cpugrid.size(), Value(0.0));
+    sw.start();
+    gridKernel(data, support, C, cOffset, iu, iv, cpugrid, gSize);
+    time = sw.stop();
+    report_timings(time, opt, sSize, griddings);
+    timingsref.push_back(time);
+    cout << "Done" << endl;
+    // Now we can do the timing for other implementation
+    cout << "+++++ "<<process<<" "<<calctypecomp<<" +++++" << endl;
+    compgrid.assign(compgrid.size(), Value(0.0));
+    time = 0;
+    gridKernelOpenCL(data, support, C, cOffset, iu, iv, compgrid, gSize, time);
+    timingscomp.push_back(time);
+    report_timings(time, opt, sSize, griddings);
+    verify_result(process+" : "+calctyperef+"<->"+calctypecomp, cpugrid, compgrid);
 
-		cout << "Done" << endl;
-	}
+    if (opt.nIterations > 1) 
+    { 
+        cout <<" Now iterating to check times "<<endl;
+        cout << "+++++ "<<process<<" "<<calctyperef<<" +++++" << endl;
+        std::vector<Value> cpugriditer(gSize*gSize);
+        std::vector<Value> compgriditer(gSize*gSize);
 
-	std::vector<Value> gpugrid(gSize*gSize);
-	gpugrid.assign(gpugrid.size(), Value(0.0));
-	{
-		// Now we can do the timing for the GPU implementation
-		cout << "+++++ Forward processing (GPU) +++++" << endl;
+        for (auto i=1; i<opt.nIterations;i++) {
+            cpugriditer.assign(cpugriditer.size(), Value(0.0));
+            sw.start();
+            gridKernel(data, support, C, cOffset, iu, iv, cpugriditer, gSize);
+            time = sw.stop();
+            timingsref.push_back(time);
+        }
+        report_timings(timingsref, opt, sSize, griddings);
+        cout << "+++++ "<<process<<" "<<calctypecomp<<" +++++" << endl;
+        for (auto i=1; i<opt.nIterations;i++) {
+            compgriditer.assign(compgriditer.size(), Value(0.0));
+            time = 0.0;
+            gridKernelOpenCL(data, support, C, cOffset, iu, iv, compgriditer, gSize, time);
+            timingscomp.push_back(time);
+        }
+        report_timings(timingscomp, opt, sSize, griddings);
+    }
 
-		// Time is measured inside this function call, unlike the CPU versions
-		double time = 0.0;
-		gridKernelOpenCL(data, support, C, cOffset, iu, iv, gpugrid, gSize, time);
-		report_timings(time, opt, sSize, griddings);
+    ///////////////////////////////////////////////////////////////////////////
+    // DO DEGRIDDING
+    ///////////////////////////////////////////////////////////////////////////
+    process = "Reverse processing";
+    calctyperef = "CPU";
+    calctypecomp = "GPU OpenCL";
+    timingsref.clear();
+    timingscomp.clear();
 
-		cout << "Done" << endl;
-	}
-	verify_result(" Forward processing ", cpugrid, gpugrid);
+    cout << "First iteration "<<endl;
+    // Run reference CPU calculation 
+    cout << "+++++ "<<process<<" "<<calctyperef<<" +++++" << endl;
+    cpugrid.assign(cpugrid.size(), Value(1.0));
+    sw.start();
+    degridKernel(cpugrid, gSize, support, C, cOffset, iu, iv, cpuoutdata);
+    time = sw.stop();
+    report_timings(time, opt, sSize, griddings);
+    timingsref.push_back(time);
+    cout << "Done" << endl;
+    // Now we can do the timing for other implementation
+    cout << "+++++ "<<process<<" "<<calctypecomp<<" +++++" << endl;
+    compgrid.assign(compgrid.size(), Value(1.0));
+    time = 0.0;
+    degridKernelOpenCL(compgrid, gSize, support, C, cOffset, iu, iv, compoutdata, time);
+    timingscomp.push_back(time);
+    report_timings(time, opt, sSize, griddings);
+    verify_result(process+" : "+calctyperef+"<->"+calctypecomp, cpuoutdata, compoutdata);
 
-	///////////////////////////////////////////////////////////////////////////
-	// DO DEGRIDDING
-	///////////////////////////////////////////////////////////////////////////
-	{
-		cpugrid.assign(cpugrid.size(), Value(1.0));
-		// Now we can do the timing for the CPU implementation
-		cout << "+++++ Reverse processing (CPU) +++++" << endl;
+    if (opt.nIterations > 1) 
+    { 
+        cout <<" Now iterating to check times "<<endl;
+        cout << "+++++ "<<process<<" "<<calctyperef<<" +++++" << endl;
+        std::vector<Value> cpugriditer(gSize*gSize);
+        std::vector<Value> compgriditer(gSize*gSize);
 
-		Stopwatch sw;
-		sw.start();
-		degridKernel(cpugrid, gSize, support, C, cOffset, iu, iv, cpuoutdata);
-		double time = sw.stop();
-		report_timings(time, opt, sSize, griddings);
-
-		cout << "Done" << endl;
-	}
-
-	{
-		gpugrid.assign(gpugrid.size(), Value(1.0));
-		// Now we can do the timing for the GPU implementation
-		cout << "+++++ Reverse processing (GPU) +++++" << endl;
-
-		// Time is measured inside this function call, unlike the CPU versions
-		double time = 0.0;
-		degridKernelOpenCL(gpugrid, gSize, support, C, cOffset, iu, iv, gpuoutdata, time);
-		report_timings(time, opt, sSize, griddings);
-
-		cout << "Done" << endl;
-	}
-	verify_result(" Reverse processing ", cpuoutdata, gpuoutdata);
+        for (auto i=1; i<opt.nIterations;i++) {
+            cpugriditer.assign(cpugriditer.size(), Value(1.0));
+            sw.start();
+            degridKernel(cpugriditer, gSize, support, C, cOffset, iu, iv, cpuoutdata);
+            time = sw.stop();
+            timingsref.push_back(time);
+        }
+        report_timings(timingsref, opt, sSize, griddings);
+        cout << "+++++ "<<process<<" "<<calctypecomp<<" +++++" << endl;
+        for (auto i=1; i<opt.nIterations;i++) {
+            compgriditer.assign(compgriditer.size(), Value(1.0));
+            time = 0.0;
+            degridKernelOpenCL(compgriditer, gSize, support, C, cOffset, iu, iv, compoutdata, time);
+            timingscomp.push_back(time);
+        }
+        report_timings(timingscomp, opt, sSize, griddings);
+    }
 
 	return 0;
 }
