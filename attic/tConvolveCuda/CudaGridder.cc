@@ -37,7 +37,7 @@
 
 // Local includes
 #include "CudaGridKernel.h"
-#include "Stopwatch.h"
+#include "common.h"
 
 typedef float Real;
 typedef std::complex<Real> Value;

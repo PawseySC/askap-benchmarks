@@ -27,7 +27,6 @@
 // Local includes
 #include "common.h"
 #include "CudaGridder.h"
-#include "Stopwatch.h"
 
 /////////////////////////////////////////////////////////////////////////////////
 // The next two functions are the kernel of the gridding/degridding.
