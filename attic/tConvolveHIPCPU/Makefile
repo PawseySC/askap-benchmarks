@@ -26,14 +26,14 @@ CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fcx-limited-range -fPIC
 
 CUDA = $(CUDATOOLKIT_HOME)/include
 HIPCPU = /group/pawsey0001/mcytowski/HIP-CPU/askap-benchmarks/attic/HIP-CPU/include
-EXENAME = tConvolveCuda
+EXENAME = tConvolveHIPCPU
 EXEOBJS = $(EXENAME).o
-EXELIBS = -lCudaGridder
+EXELIBS = -lHIPCPUGridder
 
 LIBNAME=libHIPCPUGridder.so
 LIBOBJS=HIPCPUGridder.o HIPCPUGridKernel.o common.o
 
-NVCCFLAGS= -fPIC -std=c++2a
+HIPCPUFLAGS= -fPIC -std=c++2a
 #-std=c++20
 
 all:		$(EXENAME) $(LIBNAME)
@@ -42,12 +42,12 @@ all:		$(EXENAME) $(LIBNAME)
 		$(CXX) $(CFLAGS) -I$(HIPCPU) -c $<
 
 $(LIBNAME):	HIPCPUGridder.cc HIPCPUGridder.h HIPCPUGridKernel.cu common.o
-		gcc $(NVCCFLAGS) -I$(HIPCPU) -c HIPCPUGridKernel.cc
-		gcc $(NVCCFLAGS) -I$(HIPCPU) -c HIPCPUGridder.cc
-		gcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
+		gcc $(HIPCPUFLAGS) -I$(HIPCPU) -c HIPCPUGridKernel.cc
+		gcc $(HIPCPUFLAGS) -I$(HIPCPU) -c HIPCPUGridder.cc
+		gcc $(HIPCPUFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
 
 $(EXENAME):	$(EXEOBJS) $(LIBNAME)
-		$(CXX) $(CFLAGS) -L. -L/usr/local/cuda -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
+		$(CXX) $(CFLAGS) -L. -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
 
 clean: 
 		rm -f $(EXENAME) $(LIBNAME) *.o
