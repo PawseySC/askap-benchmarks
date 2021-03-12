@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 
     // Setup the benchmark class
     Benchmark bmark;
-    bmark.init();
+    bmark.init(opt);
 
     // Determine how much work will be done across all ranks
     const int sSize = 2 * bmark.getSupport() + 1;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     Stopwatch sw;
     MPI_Barrier(MPI_COMM_WORLD);
     sw.start();
-    bmark.runGrid();
+    bmark.runGrid(opt);
     MPI_Barrier(MPI_COMM_WORLD);
     double time = sw.stop();
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     }
     MPI_Barrier(MPI_COMM_WORLD);
     sw.start();
-    bmark.runDegrid();
+    bmark.runDegrid(opt);
     MPI_Barrier(MPI_COMM_WORLD);
     time = sw.stop();
 
