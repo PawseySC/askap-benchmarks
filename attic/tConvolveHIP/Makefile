@@ -24,28 +24,28 @@
 CXX = g++
 CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fcx-limited-range -fPIC
 
-CUDA = $(CUDATOOLKIT_HOME)/include
-EXENAME = tConvolveCuda
+HIP = $(HIPTOOLKIT_HOME)/include
+EXENAME = tConvolveHIP
 EXEOBJS = $(EXENAME).o
 EXELIBS = -lHIPGridder
 
 LIBNAME=libHIPGridder.so
 LIBOBJS=HIPGridder.o HIPGridKernel.o common.o
 
-NVCCFLAGS= --compiler-options -fPIC
+HIPFLAGS= --compiler-options -fPIC
 
 all:		$(EXENAME) $(LIBNAME)
 
 %.o:		%.cc %.h
-		$(CXX) $(CFLAGS) -I$(CUDA) -c $<
+		$(CXX) $(CFLAGS) -I$(HIP) -c $<
 
 $(LIBNAME):	HIPGridder.cc HIPGridder.h HIPGridKernel.cu common.o
-		hipcc $(NVCCFLAGS) -I$(CUDA) -c HIPGridKernel.cu
-		hipcc $(NVCCFLAGS) -I$(CUDA) -c HIPGridder.cc
-		hipcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
+		hipcc $(HIPFLAGS) -I$(HIP) -c HIPGridKernel.cu
+		hipcc $(HIPFLAGS) -I$(HIP) -c HIPGridder.cc
+		hipcc $(HIPFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
 
 $(EXENAME):	$(EXEOBJS) $(LIBNAME)
-		$(CXX) $(CFLAGS) -L. -L/usr/local/cuda -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
+		$(CXX) $(CFLAGS) -L. -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
 
 clean: 
 		rm -f $(EXENAME) $(LIBNAME) *.o
