@@ -37,16 +37,13 @@
 
 // Local includes
 #include "HIPCPUGridKernel.h"
-#include "Stopwatch.h"
-
-typedef float Real;
-typedef std::complex<Real> Value;
+#include "common.h"
 
 void checkerror(hipError_t err)
 {
     if (err != hipSuccess)
     {
-        std::cout << "CUDA Error: " << hipGetErrorString(err) << std::endl;
+        std::cout << "HIP CPU Error: " << hipGetErrorString(err) << std::endl;
         exit(1);
     }
 }
@@ -62,7 +59,7 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
     hipDeviceProp_t devprop;
     hipGetDevice(&device);
     hipGetDeviceProperties(&devprop, device);
-    std::cout << "    Using CUDA Device " << device << ": "
+    std::cout << "    Using HIP CPU Device " << device << ": "
         << devprop.name << std::endl;
 
     // Need to convert all std::vectors to C arrays for CUDA, then call
@@ -142,10 +139,10 @@ void degridKernelCuda(const std::vector< std::complex<float> >& grid,
     hipDeviceProp_t devprop;
     hipGetDevice(&device);
     hipGetDeviceProperties(&devprop, device);
-    std::cout << "    Using CUDA Device " << device << ": "
+    std::cout << "    Using HIP CPU Device " << device << ": "
         << devprop.name << std::endl;
 
-    // Need to convert all std::vectors to C arrays for CUDA, then call
+    // Need to convert all std::vectors to C arrays for HIP CPU, then call
     // the kernel exec function. NOTE: The std::vector is the only STL
     // container which you can treat as an array like we do here.
 
