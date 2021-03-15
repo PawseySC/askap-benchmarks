@@ -98,7 +98,7 @@ void gridKernelHip(const std::vector< std::complex<float> >& data, const int sup
 
     Stopwatch sw;
     sw.start();
-    cuda_gridKernel((const Complex *)d_data, data.size(), support,
+    hip_gridKernel((const Complex *)d_data, data.size(), support,
             (const Complex *)d_C, d_cOffset, d_iu, d_iv,
             (Complex *)d_grid, gSize,
             &iu[0], &iv[0]);
@@ -178,7 +178,7 @@ void degridKernelHip(const std::vector< std::complex<float> >& grid,
 
     Stopwatch sw;
     sw.start();
-    cuda_degridKernel((const Complex *)d_grid, gSize, support,
+    hip_degridKernel((const Complex *)d_grid, gSize, support,
             (const Complex *)d_C, d_cOffset, d_iu, d_iv,
             (Complex *)d_data, data.size());
     hipDeviceSynchronize();
