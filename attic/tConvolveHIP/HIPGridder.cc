@@ -26,15 +26,12 @@
 // Include own header file first
 #include "HIPGridder.h"
 
-// Cuda includes
+// HIP includes
 #include <hip/hip_runtime_api.h>
 
 // Local includes
 #include "HIPGridKernel.h"
 #include "common.h"
-
-typedef float Real;
-typedef std::complex<Real> Value;
 
 void checkerror(hipError_t err)
 {
@@ -139,7 +136,7 @@ void degridKernelCuda(const std::vector< std::complex<float> >& grid,
     std::cout << "    Using CUDA Device " << device << ": "
         << devprop.name << std::endl;
 
-    // Need to convert all std::vectors to C arrays for CUDA, then call
+    // Need to convert all std::vectors to C arrays for HIP, then call
     // the kernel exec function. NOTE: The std::vector is the only STL
     // container which you can treat as an array like we do here.
 
