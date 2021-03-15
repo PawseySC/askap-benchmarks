@@ -26,13 +26,7 @@
 // Include own header file first
 #include "HIPCPUGridder.h"
 
-// System includes
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <complex>
-
-// Cuda includes
+// HIP includes
 #include <hip/hip_runtime_api.h>
 
 // Local includes

@@ -30,13 +30,13 @@
 
 typedef hipComplex Complex;
 
-__host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int support,
+__host__ void hip_gridKernel(const Complex  *data, const int dSize, const int support,
 		const Complex *C, const int *cOffset,
 		const int *iu, const int *iv,
 		Complex *grid, const int gSize,
 		const int *h_iu, const int *h_iv);
 
-__host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int support,
+__host__ void hip_degridKernel(const Complex *grid, const int gSize, const int support,
                 const Complex *C, const int *cOffset,
                 const int *iu, const int *iv,
                 Complex  *data, const int dSize);

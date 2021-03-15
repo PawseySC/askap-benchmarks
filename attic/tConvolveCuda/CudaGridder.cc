@@ -26,21 +26,12 @@
 // Include own header file first
 #include "CudaGridder.h"
 
-// System includes
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <complex>
-
 // Cuda includes
 #include <cuda_runtime_api.h>
 
 // Local includes
 #include "CudaGridKernel.h"
 #include "common.h"
-
-typedef float Real;
-typedef std::complex<Real> Value;
 
 void checkerror(cudaError_t err)
 {
