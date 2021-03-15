@@ -146,7 +146,7 @@ int verify_result(std::string compname,
     for (unsigned long long i = 0; i < ref.size(); ++i) {
         if (fabs(ref[i].real() - comp[i].real()) > abserr) 
         {
-            cout << "Failed! Expected " << comp[i].real() << ", got "
+            cout << "Failed! Expected " << ref[i].real() << ", got "
                      << comp[i].real() << " at index " << i <<endl;
             return 1;
         }
