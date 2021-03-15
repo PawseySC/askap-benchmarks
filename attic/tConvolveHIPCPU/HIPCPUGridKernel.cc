@@ -35,7 +35,7 @@
 #include <assert.h>
 
 // Local includes
-#include "CudaGridKernel.h"
+#include "HIPCPUGridKernel.h"
 
 // Check and report last error
 __host__ __inline__ void checkError(void)
@@ -43,7 +43,7 @@ __host__ __inline__ void checkError(void)
         hipError_t err = hipGetLastError();
         if (err != hipSuccess)
         {
-                printf("CUDA Error: %s\n", hipGetErrorString(err));
+                printf("HIP CPU Error: %s\n", hipGetErrorString(err));
         }
 }
 
@@ -107,7 +107,7 @@ __host__ __inline__ int gridStep(const int *h_iu, const int *h_iv,
 }
 
 // Perform Gridding (Host Function)
-__host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int support,
+__host__ void hip_gridKernel(const Complex  *data, const int dSize, const int support,
 		const Complex *C, const int *cOffset,
 		const int *iu, const int *iv,
 		Complex *grid, const int gSize,
@@ -239,7 +239,7 @@ __global__ void d_degridKernel(const Complex *grid, const int gSize,
 }
 
 // Perform De-Gridding (Host Function)
-__host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int support,
+__host__ void hip_degridKernel(const Complex *grid, const int gSize, const int support,
         const Complex *C, const int *cOffset,
         const int *iu, const int *iv,
         Complex  *data, const int dSize)

@@ -26,32 +26,23 @@
 // Include own header file first
 #include "HIPGridder.h"
 
-// System includes
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <complex>
-
-// Cuda includes
+// HIP includes
 #include <hip/hip_runtime_api.h>
 
 // Local includes
 #include "HIPGridKernel.h"
-#include "Stopwatch.h"
-
-typedef float Real;
-typedef std::complex<Real> Value;
+#include "common.h"
 
 void checkerror(hipError_t err)
 {
     if (err != hipSuccess)
     {
-        std::cout << "CUDA Error: " << hipGetErrorString(err) << std::endl;
+        std::cout << "HIP Error: " << hipGetErrorString(err) << std::endl;
         exit(1);
     }
 }
 
-void gridKernelCuda(const std::vector< std::complex<float> >& data, const int support,
+void gridKernelHip(const std::vector< std::complex<float> >& data, const int support,
         const std::vector< std::complex<float> >& C, const std::vector<int>& cOffset,
         const std::vector<int>& iu, const std::vector<int>& iv,
         std::vector< std::complex<float> >& grid, const int gSize,
@@ -62,10 +53,10 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
     hipDeviceProp_t devprop;
     hipGetDevice(&device);
     hipGetDeviceProperties(&devprop, device);
-    std::cout << "    Using CUDA Device " << device << ": "
+    std::cout << "    Using HIP Device " << device << ": "
         << devprop.name << std::endl;
 
-    // Need to convert all std::vectors to C arrays for CUDA, then call
+    // Need to convert all std::vectors to C arrays for HIP, then call
     // the kernel exec function. NOTE: The std::vector is the only STL
     // container which you can treat as an array like we do here.
 
@@ -127,7 +118,7 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
     hipFree(d_data);
 }
 
-void degridKernelCuda(const std::vector< std::complex<float> >& grid,
+void degridKernelHip(const std::vector< std::complex<float> >& grid,
         const int gSize,
         const int support,
         const std::vector< std::complex<float> >& C,
@@ -145,7 +136,7 @@ void degridKernelCuda(const std::vector< std::complex<float> >& grid,
     std::cout << "    Using CUDA Device " << device << ": "
         << devprop.name << std::endl;
 
-    // Need to convert all std::vectors to C arrays for CUDA, then call
+    // Need to convert all std::vectors to C arrays for HIP, then call
     // the kernel exec function. NOTE: The std::vector is the only STL
     // container which you can treat as an array like we do here.
 
