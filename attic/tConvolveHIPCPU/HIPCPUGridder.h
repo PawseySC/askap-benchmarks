@@ -29,7 +29,7 @@
 #include <vector>
 #include <complex>
 
-void gridKernelCuda(const std::vector< std::complex<float> >& data,
+void gridKernelHip(const std::vector< std::complex<float> >& data,
 		const int support,
 		const std::vector< std::complex<float> >& C,
 		const std::vector<int>& cOffset,
@@ -39,7 +39,7 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data,
 		const int gSize,
 		double &time);
 
-void degridKernelCuda(const std::vector< std::complex<float> >& grid,
+void degridKernelHip(const std::vector< std::complex<float> >& grid,
                 const int gSize,
                 const int support,
                 const std::vector< std::complex<float> >& C,

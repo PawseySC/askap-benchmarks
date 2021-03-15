@@ -42,7 +42,7 @@ void checkerror(hipError_t err)
     }
 }
 
-void gridKernelCuda(const std::vector< std::complex<float> >& data, const int support,
+void gridKernelHip(const std::vector< std::complex<float> >& data, const int support,
         const std::vector< std::complex<float> >& C, const std::vector<int>& cOffset,
         const std::vector<int>& iu, const std::vector<int>& iv,
         std::vector< std::complex<float> >& grid, const int gSize,
@@ -118,7 +118,7 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
     hipFree(d_data);
 }
 
-void degridKernelCuda(const std::vector< std::complex<float> >& grid,
+void degridKernelHip(const std::vector< std::complex<float> >& grid,
         const int gSize,
         const int support,
         const std::vector< std::complex<float> >& C,

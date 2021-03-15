@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
 
         // Time is measured inside this function call, unlike the CPU versions
         double time = 0.0;
-        gridKernelCuda(data, support, C, cOffset, iu, iv, gpugrid, gSize, time);
+        gridKernelHip(data, support, C, cOffset, iu, iv, gpugrid, gSize, time);
         report_timings(time, opt, sSize, griddings);
 
         cout << "Done" << endl;
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 
         // Time is measured inside this function call, unlike the CPU versions
         double time = 0.0;
-        degridKernelCuda(gpugrid, gSize, support, C, cOffset, iu, iv, gpuoutdata, time);
+        degridKernelHip(gpugrid, gSize, support, C, cOffset, iu, iv, gpuoutdata, time);
         report_timings(time, opt, sSize, griddings);
 
         cout << "Done" << endl;
