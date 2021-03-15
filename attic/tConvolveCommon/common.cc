@@ -125,7 +125,7 @@ void report_timings(const std::vector<double> &timings, Options &opt, const int 
     double avetime = 0, stdtime = 0;
     for (auto t:timings) {avetime += t; stdtime += t*t;}
     avetime /= static_cast<double>(opt.nIterations);
-    stdtime = sqrt(stdtime - avetime*avetime)/(static_cast<double>(opt.nIterations)-1.0);
+    stdtime = sqrt(stdtime - avetime*avetime*opt.nIterations)/(static_cast<double>(opt.nIterations)-1.0);
 
     cout << "    Ave Time " << avetime << " +/= "<< stdtime<<" (s) " << endl;
     cout << "    Ave Time per visibility spectral sample " << 1e6*avetime / spectralsamplesize << " (us) " << endl;
