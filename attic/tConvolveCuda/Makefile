@@ -30,7 +30,7 @@ EXEOBJS = $(EXENAME).o
 EXELIBS = -lCudaGridder
 
 LIBNAME=libCudaGridder.so
-LIBOBJS=CudaGridder.o CudaGridKernel.o Stopwatch.o
+LIBOBJS=CudaGridder.o CudaGridKernel.o common.o
 
 NVCCFLAGS= --compiler-options -fPIC
 
@@ -39,13 +39,13 @@ all:		$(EXENAME) $(LIBNAME)
 %.o:		%.cc %.h
 		$(CXX) $(CFLAGS) -I$(CUDA) -c $<
 
-$(LIBNAME):	CudaGridder.cc CudaGridder.h CudaGridKernel.cu Stopwatch.o
+$(LIBNAME):	CudaGridder.cc CudaGridder.h CudaGridKernel.cu common.o
 		nvcc $(NVCCFLAGS) -I$(CUDA) -c CudaGridKernel.cu
 		$(CXX) $(CFLAGS) -I$(CUDA) -c CudaGridder.cc
 		nvcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
 
 $(EXENAME):	$(EXEOBJS) $(LIBNAME)
-		$(CXX) $(CFLAGS) -L. -L/usr/local/cuda -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
+		$(CXX) $(CFLAGS) -L. -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
 
 clean: 
 		rm -f $(EXENAME) $(LIBNAME) *.o

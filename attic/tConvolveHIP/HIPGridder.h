@@ -21,22 +21,32 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
+/// @author Tim Cornwell  <tim.cornwell@csiro.au>
 
-#ifndef STOPWATCH_H
-#define STOPWATCH_H
+#ifndef HIP_GRIDDER_H
+#define HIP_GRIDDER_H
 
-#include <sys/times.h>
+#include <vector>
+#include <complex>
 
-class Stopwatch {
-    public:
-        Stopwatch();
-        ~Stopwatch();
+void gridKernelHip(const std::vector< std::complex<float> >& data,
+		const int support,
+		const std::vector< std::complex<float> >& C,
+		const std::vector<int>& cOffset,
+		const std::vector<int>& iu,
+		const std::vector<int>& iv,
+		std::vector< std::complex<float> >& grid,
+		const int gSize,
+		double &time);
 
-        void start();
-        double stop();
-
-    private:
-        clock_t m_start;
-};
+void degridKernelHip(const std::vector< std::complex<float> >& grid,
+                const int gSize,
+                const int support,
+                const std::vector< std::complex<float> >& C,
+                const std::vector<int>& cOffset,
+                const std::vector<int>& iu,
+                const std::vector<int>& iv,
+                std::vector< std::complex<float> >& data,
+		double &time);
 
 #endif

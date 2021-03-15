@@ -1,4 +1,4 @@
-/// @copyright (c) 2007 CSIRO
+/// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -21,21 +21,24 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
+/// @author Tim Cornwell  <tim.cornwell@csiro.au>
 
-#ifndef STOPWATCH_H
-#define STOPWATCH_H
+#ifndef HIPCPU_GRID_KERNEL_H
+#define HIPCPU_GRID_KERNEL_H
 
-#include <sys/times.h>
+#include <hip/hip_complex.h>
 
-class Stopwatch {
-    public:
-        Stopwatch();
-        ~Stopwatch();
-        void start();
-        double stop();
+typedef hipComplex Complex;
 
-    private:
-        clock_t m_start;
-};
+__host__ void hip_gridKernel(const Complex  *data, const int dSize, const int support,
+		const Complex *C, const int *cOffset,
+		const int *iu, const int *iv,
+		Complex *grid, const int gSize,
+		const int *h_iu, const int *h_iv);
+
+__host__ void hip_degridKernel(const Complex *grid, const int gSize, const int support,
+                const Complex *C, const int *cOffset,
+                const int *iu, const int *iv,
+                Complex  *data, const int dSize);
 
 #endif

@@ -1,4 +1,4 @@
-/// @copyright (c) 2007 CSIRO
+/// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -23,53 +23,10 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 /// @author Tim Cornwell  <tim.cornwell@csiro.au>
 
+
 // Local includes
-#include "../tConvolveCommon/common.h"
-
-// system includes
-#include <cassert>
-
-// OpenMP includes
-#include <omp.h>
-
-
-// BLAS includes
-#ifdef USEBLAS
-
-#define CAXPY cblas_caxpy
-#define CDOTU_SUB cblas_cdotu_sub
-
-#include <mkl_cblas.h>
-
-#endif
-
-#if defined(GRIDING)  
-	#define SERIAL_GRIDING 1
-	#define OMP_GRIDING 1
-	#define VERIFY_GRIDING 1
-#elif defined(SERIAL_GRIDING)
-	#define SERIAL_GRIDING 1
-#elif defined(OMP_GRIDING)
-	#define OMP_GRIDING 1
-
-
-#elif defined(DEGRIDING)
-	#define SERIAL_DEGRIDING 1
-	#define OMP_DEGRIDING 1
-	#define VERIFY_DEGRIDING 1
-#elif defined(SERIAL_DEGRIDING)
-	#define SERIAL_DEGRIDING 1
-#elif defined(OMP_DEGRIDING)
-	#define OMP_DEGRIDING 1
-#else
-	#define SERIAL_GRIDING 1
-	#define OMP_GRIDING 1
-	#define VERIFY_GRIDING 1
-
-	#define SERIAL_DEGRIDING 1
-	#define OMP_DEGRIDING 1
-	#define VERIFY_DEGRIDING 1
-#endif  
+#include "common.h"
+#include "HIPCPUGridder.h"
 
 /////////////////////////////////////////////////////////////////////////////////
 // The next two functions are the kernel of the gridding/degridding.
@@ -88,6 +45,7 @@
 // iu, iv - integer locations of grid points
 // grid - Output grid: shape (gSize, *)
 // gSize - size of one axis of grid
+
 void gridKernel(const std::vector<Value>& data, const int support,
                 const std::vector<Value>& C, const std::vector<int>& cOffset,
                 const std::vector<int>& iu, const std::vector<int>& iv,
@@ -98,13 +56,11 @@ void gridKernel(const std::vector<Value>& data, const int support,
     for (int dind = 0; dind < int(data.size()); ++dind) {
         // The actual grid point
         int gind = iu[dind] + gSize * iv[dind] - support;
+
         // The Convoluton function point from which we offset
         int cind = cOffset[dind];
 
         for (int suppv = 0; suppv < sSize; suppv++) {
-#ifdef USEBLAS
-            CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
-#else
             Value* gptr = &grid[gind];
             const Value* cptr = &C[cind];
             const Value d = data[dind];
@@ -113,52 +69,10 @@ void gridKernel(const std::vector<Value>& data, const int support,
                 *(gptr++) += d * (*(cptr++));
             }
 
-#endif
             gind += gSize;
             cind += sSize;
         }
     }
-}
-
-int gridKernelOMP(const std::vector<Value>& data, const int support,
-        const std::vector<Value>& C, const std::vector<int>& cOffset,
-        const std::vector<int>& iu, const std::vector<int>& iv,
-        std::vector<Value>& grid, const int gSize)
-{
-    const int sSize = 2 * support + 1;
-    #pragma omp parallel default(shared)
-    {
-        const int tid = omp_get_thread_num();
-        const int nthreads = omp_get_num_threads();
-
-        for (int dind = 0; dind < int(data.size()); ++dind) {
-            // The actual grid point
-            int gind = iu[dind] + gSize * iv[dind] - support;
-            // The Convoluton function point from which we offset
-            int cind = cOffset[dind];
-            int row = iv[dind];
-            for (int suppv = 0; suppv < sSize; suppv++) {
-                if (row % nthreads == tid) {
-#ifdef USEBLAS
-                    CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
-#else
-                    Value* gptr = &grid[gind];
-                    const Value* cptr = &C[cind];
-                    const Value d = data[dind];
-
-                    for (int suppu = 0; suppu < sSize; suppu++) {
-                        *(gptr++) += d * (*(cptr++));
-                    }
-#endif
-                }
-                gind += gSize;
-                cind += sSize;
-                row++;
-            }
-        }
-    } // End omp parallel
-
-    return omp_get_max_threads();
 }
 
 // Perform degridding
@@ -170,19 +84,16 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
     const int sSize = 2 * support + 1;
 
     for (int dind = 0; dind < int(data.size()); ++dind) {
+
         data[dind] = 0.0;
 
         // The actual grid point from which we offset
         int gind = iu[dind] + gSize * iv[dind] - support;
+
         // The Convoluton function point from which we offset
         int cind = cOffset[dind];
 
         for (int suppv = 0; suppv < sSize; suppv++) {
-#ifdef USEBLAS
-            Value dot;
-            CDOTU_SUB(sSize, &grid[gind], 1, &C[cind], 1, &dot);
-            data[dind] += dot;
-#else
             Value* d = &data[dind];
             const Value* gptr = &grid[gind];
             const Value* cptr = &C[cind];
@@ -191,54 +102,11 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
                 (*d) += (*(gptr++)) * (*(cptr++));
             }
 
-#endif
             gind += gSize;
             cind += sSize;
         }
 
     }
-}
-
-int degridKernelOMP(const std::vector<Value>& grid, const int gSize, const int support,
-                    const std::vector<Value>& C, const std::vector<int>& cOffset,
-                    const std::vector<int>& iu, const std::vector<int>& iv,
-                    std::vector<Value>& data)
-{
-    const int sSize = 2 * support + 1;
-
-    #pragma omp parallel for  \
-        default(shared)   \
-        schedule(dynamic, 32)
-    for (int dind = 0; dind < int(data.size()); ++dind) {
-        data[dind] = 0.0;
-
-        // The actual grid point from which we offset
-        int gind = iu[dind] + gSize * iv[dind] - support;
-        // The Convoluton function point from which we offset
-        int cind = cOffset[dind];
-
-        for (int suppv = 0; suppv < sSize; suppv++) {
-#ifdef USEBLAS
-            Value dot;
-            CDOTU_SUB(sSize, &grid[gind], 1, &C[cind], 1, &dot);
-            data[dind] += dot;
-#else
-            Value* d = &data[dind];
-            const Value* gptr = &grid[gind];
-            const Value* cptr = &C[cind];
-
-            for (int suppu = 0; suppu < sSize; suppu++) {
-                (*d) += (*(gptr++)) * (*(cptr++));
-            }
-
-#endif
-            gind += gSize;
-            cind += sSize;
-        }
-
-    }
-
-    return omp_get_max_threads();
 }
 
 // Main testing routine
@@ -254,14 +122,13 @@ int main(int argc, char* argv[])
     const int gSize = opt.gSize;
     const int baseline = opt.baseline; 
 
-    cout << "nSamples = " << nSamples <<endl;
     // Initialize the data to be gridded
     std::vector<Coord> u(nSamples);
     std::vector<Coord> v(nSamples);
     std::vector<Coord> w(nSamples);
     std::vector<Value> data(nSamples*nChan);
     std::vector<Value> cpuoutdata(nSamples*nChan);
-    std::vector<Value> ompoutdata(nSamples*nChan);
+    std::vector<Value> gpuoutdata(nSamples*nChan);
 
     const unsigned int maxint = std::numeric_limits<int>::max();
 
@@ -273,12 +140,9 @@ int main(int argc, char* argv[])
         for (int chan = 0; chan < nChan; chan++) {
             data[i*nChan+chan] = 1.0;
             cpuoutdata[i*nChan+chan] = 0.0;
-            ompoutdata[i*nChan+chan] = 0.0;
+            gpuoutdata[i*nChan+chan] = 0.0;
         }
     }
-
-    std::vector<Value> grid(gSize*gSize);
-    grid.assign(grid.size(), Value(0.0));
 
     // Measure frequency in inverse wavelengths
     std::vector<Coord> freq(nChan);
@@ -298,11 +162,9 @@ int main(int argc, char* argv[])
 
     initC(freq, cellSize, baseline, wSize, support, overSample, wCellSize, C);
     initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, support,
-                overSample, cOffset, iu, iv);
+            overSample, cOffset, iu, iv);
     const int sSize = 2 * support + 1;
-
     const double griddings = (double(nSamples * nChan) * double((sSize) * (sSize)));
-
 
     ///////////////////////////////////////////////////////////////////////////
     // DO GRIDDING
@@ -316,29 +178,26 @@ int main(int argc, char* argv[])
         Stopwatch sw;
         sw.start();
         gridKernel(data, support, C, cOffset, iu, iv, cpugrid, gSize);
-        double time = sw.stop();
+        const double time = sw.stop();
         report_timings(time, opt, sSize, griddings);
 
         cout << "Done" << endl;
     }
 
-    std::vector<Value> ompgrid(gSize*gSize);
-    ompgrid.assign(ompgrid.size(), Value(0.0));
+    std::vector<Value> gpugrid(gSize*gSize);
+    gpugrid.assign(gpugrid.size(), Value(0.0));
     {
         // Now we can do the timing for the GPU implementation
-        cout << "+++++ Forward processing (OpenMP) +++++" << endl;
+        cout << "+++++ Forward processing (GPU) +++++" << endl;
 
         // Time is measured inside this function call, unlike the CPU versions
-        Stopwatch sw;
-        sw.start();
-        const int nthreads = gridKernelOMP(data, support, C, cOffset, iu, iv, ompgrid, gSize);
-        const double time = sw.stop();
-        cout<<" Running with "<< nthreads <<" threads "<<endl;
+        double time = 0.0;
+        gridKernelHip(data, support, C, cOffset, iu, iv, gpugrid, gSize, time);
         report_timings(time, opt, sSize, griddings);
 
         cout << "Done" << endl;
     }
-    verify_result(" Forward Processing ", cpugrid, ompgrid);
+    verify_result(" Forward processing ", cpugrid, gpugrid);
 
     ///////////////////////////////////////////////////////////////////////////
     // DO DEGRIDDING
@@ -356,21 +215,20 @@ int main(int argc, char* argv[])
 
         cout << "Done" << endl;
     }
+
     {
-        ompgrid.assign(ompgrid.size(), Value(1.0));
+        gpugrid.assign(gpugrid.size(), Value(1.0));
         // Now we can do the timing for the GPU implementation
-        cout << "+++++ Reverse processing (OpenMP) +++++" << endl;
+        cout << "+++++ Reverse processing (GPU) +++++" << endl;
 
         // Time is measured inside this function call, unlike the CPU versions
-        Stopwatch sw;
-        sw.start();
-        const int nthreads = degridKernelOMP(ompgrid, gSize, support, C, cOffset, iu, iv, ompoutdata);
-        const double time = sw.stop();
-        cout<<" Running with "<< nthreads <<" threads "<<endl;
+        double time = 0.0;
+        degridKernelHip(gpugrid, gSize, support, C, cOffset, iu, iv, gpuoutdata, time);
         report_timings(time, opt, sSize, griddings);
 
         cout << "Done" << endl;
     }
-    verify_result(" Reverse Processing ", cpuoutdata, ompoutdata);
+    verify_result(" Reverse processing ", cpuoutdata, gpuoutdata);
+
     return 0;
 }

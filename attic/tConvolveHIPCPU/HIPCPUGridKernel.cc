@@ -35,7 +35,7 @@
 #include <assert.h>
 
 // Local includes
-#include "CudaGridKernel.h"
+#include "HIPCPUGridKernel.h"
 
 // Check and report last error
 __host__ __inline__ void checkError(void)
@@ -43,7 +43,7 @@ __host__ __inline__ void checkError(void)
         hipError_t err = hipGetLastError();
         if (err != hipSuccess)
         {
-                printf("CUDA Error: %s\n", hipGetErrorString(err));
+                printf("HIP CPU Error: %s\n", hipGetErrorString(err));
         }
 }
 
@@ -83,7 +83,8 @@ __global__ void d_gridKernel(const Complex *data, const int support,
     cind += sSize * blockIdx.x;
 
     // threadIdx.x gives the support location in the u dirction
-    grid[gind+threadIdx.x] = hipCfmaf(l_data, C[cind+threadIdx.x], grid[gind+threadIdx.x]);
+// TEMPORARLY REMOVED
+//    grid[gind+threadIdx.x] = hipCfmaf(l_data, C[cind+threadIdx.x], grid[gind+threadIdx.x]);
 }
 
 // Calculates, for a given dind, how many of the next samples can
@@ -106,13 +107,14 @@ __host__ __inline__ int gridStep(const int *h_iu, const int *h_iv,
 }
 
 // Perform Gridding (Host Function)
-__host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int support,
+__host__ void hip_gridKernel(const Complex  *data, const int dSize, const int support,
 		const Complex *C, const int *cOffset,
 		const int *iu, const int *iv,
 		Complex *grid, const int gSize,
 		const int *h_iu, const int *h_iv)
 {
-    hipFuncSetCacheConfig(reinterpret_cast<const void*>(d_gridKernel), hipFuncCachePreferL1);
+//    TEMPORARLY REMOVED
+//    hipFuncSetCacheConfig(reinterpret_cast<const void*>(d_gridKernel), hipFuncCachePreferL1);
 
 	const int sSize=2*support+1;
 	int step = 1;
@@ -143,6 +145,7 @@ __device__ Complex sumReduceWarpComplex(Complex val)
 {
     const int offset = 2*support;
     volatile __shared__ float vals[offset*2];
+    hipFloatComplex ret;
 
     int i = threadIdx.x;
     int lane = i & 31;
@@ -162,7 +165,11 @@ __device__ Complex sumReduceWarpComplex(Complex val)
     vals[i] = v = v + vals[i +  2];
     vals[i] = v = v + vals[i +  1];
 
-    return make_hipFloatComplex(vals[threadIdx.x], vals[threadIdx.x + offset]);
+    ret.x=vals[threadIdx.x];
+    ret.y=vals[threadIdx.x + offset];
+
+    return ret;
+    //return make_hipFloatComplex(vals[threadIdx.x], vals[threadIdx.x + offset]);
 }
 
 // Perform De-Gridding (Device Function)
@@ -232,7 +239,7 @@ __global__ void d_degridKernel(const Complex *grid, const int gSize,
 }
 
 // Perform De-Gridding (Host Function)
-__host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int support,
+__host__ void hip_degridKernel(const Complex *grid, const int gSize, const int support,
         const Complex *C, const int *cOffset,
         const int *iu, const int *iv,
         Complex  *data, const int dSize)

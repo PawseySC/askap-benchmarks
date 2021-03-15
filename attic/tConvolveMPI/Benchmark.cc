@@ -57,52 +57,52 @@ int Benchmark::randomInt()
     return ((unsigned int)(next / 65536) % maxint);
 }
 
-void Benchmark::init()
+void Benchmark::init(Options &opt)
 {
     // Initialize the data to be gridded
-    u.resize(nSamples);
-    v.resize(nSamples);
-    w.resize(nSamples);
-    samples.resize(nSamples*nChan);
-    outdata.resize(nSamples*nChan);
+    u.resize(opt.nSamples);
+    v.resize(opt.nSamples);
+    w.resize(opt.nSamples);
+    samples.resize(opt.nSamples*opt.nChan);
+    outdata.resize(opt.nSamples*opt.nChan);
 
     const unsigned int maxint = std::numeric_limits<int>::max();
 
-    for (int i = 0; i < nSamples; i++) {
-        u[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
-        v[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
-        w[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
+    for (int i = 0; i < opt.nSamples; i++) {
+        u[i] = opt.baseline * Coord(randomInt()) / Coord(maxint) - opt.baseline / 2;
+        v[i] = opt.baseline * Coord(randomInt()) / Coord(maxint) - opt.baseline / 2;
+        w[i] = opt.baseline * Coord(randomInt()) / Coord(maxint) - opt.baseline / 2;
 
-        for (int chan = 0; chan < nChan; chan++) {
-            samples[i*nChan+chan].data = 1.0;
-            outdata[i*nChan+chan] = 0.0;
+        for (int chan = 0; chan < opt.nChan; chan++) {
+            samples[i*opt.nChan+chan].data = 1.0;
+            outdata[i*opt.nChan+chan] = 0.0;
         }
     }
 
-    grid.resize(gSize*gSize);
+    grid.resize(opt.gSize*opt.gSize);
     grid.assign(grid.size(), Value(0.0));
 
     // Measure frequency in inverse wavelengths
-    std::vector<Coord> freq(nChan);
+    std::vector<Coord> freq(opt.nChan);
 
-    for (int i = 0; i < nChan; i++) {
-        freq[i] = (1.4e9 - 2.0e5 * Coord(i) / Coord(nChan)) / 2.998e8;
+    for (int i = 0; i < opt.nChan; i++) {
+        freq[i] = (1.4e9 - 2.0e5 * Coord(i) / Coord(opt.nChan)) / 2.998e8;
     }
 
     // Initialize convolution function and offsets
-    initC(freq, cellSize, wSize, m_support, overSample, wCellSize, C);
-    initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize,
+    initC(freq, opt.cellSize, opt.wSize, m_support, overSample, wCellSize, C);
+    initCOffset(u, v, w, freq, opt.cellSize, wCellSize, opt.wSize, opt.gSize,
                 m_support, overSample);
 }
 
-void Benchmark::runGrid()
+void Benchmark::runGrid(Options &opt)
 {
-    gridKernel(m_support, C, grid, gSize);
+    gridKernel(m_support, C, grid, opt.gSize);
 }
 
-void Benchmark::runDegrid()
+void Benchmark::runDegrid(Options &opt)
 {
-    degridKernel(grid, gSize, m_support, C, outdata);
+    degridKernel(grid, opt.gSize, m_support, C, outdata);
 }
 
 /////////////////////////////////////////////////////////////////////////////////

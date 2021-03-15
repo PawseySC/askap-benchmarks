@@ -39,9 +39,10 @@
 
 // Include own header file first
 #include "tConvolveMPI.h"
+#include "Benchmark.h"
+#include "common.h"
 
 // System & MPI includes
-#include <iostream>
 #include <mpi.h>
 
 // BLAS includes
@@ -55,8 +56,6 @@
 #endif
 
 // Local includes
-#include "Benchmark.h"
-#include "Stopwatch.h"
 
 // Main testing routine
 int main(int argc, char *argv[])
@@ -73,6 +72,15 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    Options opt;
+    getinput(argc, argv, opt);
+    // Change these if necessary to adjust run time
+    int nSamples = opt.nSamples;
+    int wSize = opt.wSize;
+    int nChan = opt.nChan;
+    Coord cellSize = opt.cellSize;
+    const int gSize = opt.gSize;
+    const int baseline = opt.baseline; 
 
     // Setup the benchmark class
     Benchmark bmark;
@@ -84,6 +92,7 @@ int main(int argc, char *argv[])
 
     if (rank == 0) {
         std::cout << "+++++ Forward processing (MPI) +++++" << std::endl;
+        std::cout << "    Number of processes: " << numtasks << std::endl;
     }
 
     Stopwatch sw;
@@ -95,15 +104,15 @@ int main(int argc, char *argv[])
 
     // Report on timings (master reports only)
     if (rank == 0) {
-        std::cout << "    Number of processes: " << numtasks << std::endl;
-        std::cout << "    Time " << time << " (s) " << std::endl;
-        std::cout << "    Time per visibility spectral sample " << 1e6*time / double(nSamples*nChan) << " (us) " << std::endl;
-        std::cout << "    Time per gridding   " << 1e9*time / (double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
-        std::cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
-
-        std::cout << "+++++ Reverse processing (MPI) +++++" << std::endl;
+        report_timings(time, opt, sSize, griddings);
+        std::cout << "Done" << std::endl;
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 
+    if (rank == 0) {
+        std::cout << "+++++ Reverse processing (MPI) +++++" << std::endl;
+        std::cout << "    Number of processes: " << numtasks << std::endl;
+    }
     MPI_Barrier(MPI_COMM_WORLD);
     sw.start();
     bmark.runDegrid();
@@ -112,12 +121,7 @@ int main(int argc, char *argv[])
 
     // Report on timings (master reports only)
     if (rank == 0) {
-        std::cout << "    Number of processes: " << numtasks << std::endl;
-        std::cout << "    Time " << time << " (s) " << std::endl;
-        std::cout << "    Time per visibility spectral sample " << 1e6*time / double(nSamples*nChan) << " (us) " << std::endl;
-        std::cout << "    Time per degridding " << 1e9*time / (double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
-        std::cout << "    Degridding rate " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
-
+        report_timings(time, opt, sSize, griddings);
         std::cout << "Done" << std::endl;
     }
 

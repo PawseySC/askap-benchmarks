@@ -26,12 +26,12 @@ CFLAGS=-O3 -fstrict-aliasing -fcx-limited-range -Wall -Wextra -fopenmp
 
 all:		tConvolveOMP
 
-Stopwatch.o:	Stopwatch.cc Stopwatch.h
-		$(CXX) $(CFLAGS) -c Stopwatch.cc
+common.o:	../tConvolveCommon/common.cc ../tConvolveCommon/common.h 
+		$(CXX) $(CFLAGS) -c ../tConvolveCommon/common.cc
 
-tConvolveOMP:	tConvolveOMP.cc Stopwatch.o
+tConvolveOMP:	tConvolveOMP.cc common.o
 		$(CXX) $(CFLAGS) -c tConvolveOMP.cc
-		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o Stopwatch.o
+		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o common.o
 
 clean:
 		rm -f *.o tConvolveOMP
