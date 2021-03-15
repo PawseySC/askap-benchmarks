@@ -26,18 +26,12 @@
 // Include own header file first
 #include "HIPGridder.h"
 
-// System includes
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <complex>
-
 // Cuda includes
 #include <hip/hip_runtime_api.h>
 
 // Local includes
 #include "HIPGridKernel.h"
-#include "Stopwatch.h"
+#include "common.h"
 
 typedef float Real;
 typedef std::complex<Real> Value;
