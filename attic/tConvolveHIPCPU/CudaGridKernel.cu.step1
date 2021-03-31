@@ -83,8 +83,7 @@ __global__ void d_gridKernel(const Complex *data, const int support,
     cind += sSize * blockIdx.x;
 
     // threadIdx.x gives the support location in the u dirction
-// TEMPORARLY REMOVED
-//    grid[gind+threadIdx.x] = hipCfmaf(l_data, C[cind+threadIdx.x], grid[gind+threadIdx.x]);
+    grid[gind+threadIdx.x] = hipCfmaf(l_data, C[cind+threadIdx.x], grid[gind+threadIdx.x]);
 }
 
 // Calculates, for a given dind, how many of the next samples can
@@ -113,8 +112,7 @@ __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int s
 		Complex *grid, const int gSize,
 		const int *h_iu, const int *h_iv)
 {
-//    TEMPORARLY REMOVED
-//    hipFuncSetCacheConfig(reinterpret_cast<const void*>(d_gridKernel), hipFuncCachePreferL1);
+    hipFuncSetCacheConfig(reinterpret_cast<const void*>(d_gridKernel), hipFuncCachePreferL1);
 
 	const int sSize=2*support+1;
 	int step = 1;
@@ -145,7 +143,6 @@ __device__ Complex sumReduceWarpComplex(Complex val)
 {
     const int offset = 2*support;
     volatile __shared__ float vals[offset*2];
-    hipFloatComplex ret;
 
     int i = threadIdx.x;
     int lane = i & 31;
@@ -165,11 +162,7 @@ __device__ Complex sumReduceWarpComplex(Complex val)
     vals[i] = v = v + vals[i +  2];
     vals[i] = v = v + vals[i +  1];
 
-    ret.x=vals[threadIdx.x];
-    ret.y=vals[threadIdx.x + offset];
-
-    return ret;
-    //return make_hipFloatComplex(vals[threadIdx.x], vals[threadIdx.x + offset]);
+    return make_hipFloatComplex(vals[threadIdx.x], vals[threadIdx.x + offset]);
 }
 
 // Perform De-Gridding (Device Function)

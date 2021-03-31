@@ -25,25 +25,24 @@ CXX = g++
 CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fcx-limited-range -fPIC
 
 CUDA = $(CUDATOOLKIT_HOME)/include
-HIPCPU = /group/pawsey0001/mcytowski/HIP-CPU/HIP-CPU/include
 EXENAME = tConvolveCuda
 EXEOBJS = $(EXENAME).o
-EXELIBS = -lCudaGridder -ltbb
+EXELIBS = -lCudaGridder
 
 LIBNAME=libCudaGridder.so
 LIBOBJS=CudaGridder.o CudaGridKernel.o Stopwatch.o
 
-NVCCFLAGS= -O2 -fPIC  -std=c++20 -fopenmp-simd -Wall
+NVCCFLAGS= --compiler-options -fPIC
 
 all:		$(EXENAME) $(LIBNAME)
 
 %.o:		%.cc %.h
-		$(CXX) $(CFLAGS) -I$(HIPCPU) -c $<
+		$(CXX) $(CFLAGS) -I$(CUDA) -c $<
 
 $(LIBNAME):	CudaGridder.cc CudaGridder.h CudaGridKernel.cu Stopwatch.o
-		gcc $(NVCCFLAGS) -I$(HIPCPU) -x c++ -c CudaGridKernel.cu
-		gcc $(NVCCFLAGS) -I$(HIPCPU) -c CudaGridder.cc
-		gcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
+		hipcc $(NVCCFLAGS) -I$(CUDA) -c CudaGridKernel.cu
+		hipcc $(NVCCFLAGS) -I$(CUDA) -c CudaGridder.cc
+		hipcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
 
 $(EXENAME):	$(EXEOBJS) $(LIBNAME)
 		$(CXX) $(CFLAGS) -L. -L/usr/local/cuda -o $(EXENAME) $(EXEOBJS) $(EXELIBS)
